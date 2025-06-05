@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Electricity Simulation</title>
+    <style>
+      body {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        font-family: sans-serif;
+        background-color: #f0f0f0; /* Optional: light background */
+      }
+      h1 {
+        margin-bottom: 20px;
+      }
+      #canvas {
+        border: 1px solid #ccc;
+      }
+      #toolbar {
+        position: fixed;
+        top: 50%;
+        left: 10px; /* Push it slightly away from the edge */
+        transform: translateY(-50%); /* Center vertically */
+
+        margin-top: 0; /* No longer needed */
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 9998;
+        border-radius: 8px;
+
+        max-height: 90vh;
+        overflow-y: auto; /* Allow vertical scrolling if needed */
+        white-space: normal; /* Allow buttons to wrap normally */
+        display: flex;
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 5px;
+      }
+
+      /*
+        #toolbar {
+            margin-top: 10px;
+            position: fixed;
+            top: 90%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 9998;
+            border-radius: 8px;
+            max-width: 90vw;
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            gap: 5px;
+        }
+      */
+      #toolbar button {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+      #toolbar button.active {
+        background-color: #4caf50;
+        border: 2px solid #2e7d32;
+        border-radius: 8px;
+      }
+      #worldList {
+        position: fixed; /* Fix it relative to the viewport */
+        top: 50%; /* 50% down from top */
+        left: 50%; /* 50% from left */
+        transform: translate(-50%, -50%); /* Offset itself to center */
+        background-color: white; /* Background so it stands out */
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 9999; /* High z-index to be on top */
+        display: none; /* Initially hidden (you can toggle this via JS) */
+        border-radius: 8px;
+        max-width: 90vw; /* Responsive width */
+        min-width: 200px;
+        max-height: 90vh; /* Responsive height */
+        overflow: auto; /* Scroll if content too large */
+      }
+      #worldList button {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+      #worldList input {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+      #worldList div {
+        margin-right: 5px;
+        padding: 10px 0px;
+        border-radius: 8px;
+      }
+      #options {
+        position: fixed; /* Fix it relative to the viewport */
+        top: 50%; /* 50% down from top */
+        left: 50%; /* 50% from left */
+        transform: translate(-50%, -50%); /* Offset itself to center */
+        background-color: white; /* Background so it stands out */
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 9999; /* High z-index to be on top */
+        display: none; /* Initially hidden (you can toggle this via JS) */
+        border-radius: 8px;
+        max-width: 90vw; /* Responsive width */
+        min-width: 200px; /* Minimum width so it stops looking like a twig */
+        max-height: 90vh; /* Responsive height */
+        overflow: auto; /* Scroll if content too large */
+      }
+      #options button {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+      #options input {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+      #options div {
+        margin-right: 5px;
+        padding: 10px 0px;
+        border-radius: 8px;
+      }
+      #worldList input {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Electricity Simulation</h1>
+    <canvas id="canvas" width="360" height="360"></canvas>
+    <div id="toolbar">
+      <button id="optionsOpen">Options</button>
+      <button id="pause">Pause</button>
+      <button id="step">Step</button>
+      <button data-tool="0">Clear</button>
+      <button data-tool="charge">Charge</button>
+      <button data-tool="1">Wire</button>
+      <button data-tool="2">LED</button>
+      <button data-tool="16">Conductive LED</button>
+      <button data-tool="3">Battery</button>
+      <button data-tool="10">Diode Up</button>
+      <button data-tool="9">Diode Down</button>
+      <button data-tool="12">Diode Left</button>
+      <button data-tool="11">Diode Right</button>
+      <button data-tool="8">Resistor</button>
+      <button data-tool="17">Fuse</button>
+      <button data-tool="18">Bomb</button>
+      <button data-tool="4">Wire Switch</button>
+      <button data-tool="13">Battery Switch</button>
+      <button data-tool="15">Wall (decorative)</button>
+    </div>
+    <div id="options">
+      <button id="optionsClose">X</button>
+      <h2>Options</h2>
+
+      <button id="reset">Reset Grid</button>
+      <button id="fillGrid">Fill Grid</button>
+      <button id="loadBtn" onclick="openWorldList()">Manage Worlds</button>
+      <div>
+        <label>
+          Show Grid <input type="checkbox" id="toggleGrid" checked />
+        </label>
+      </div>
+
+      <p>TPS</p>
+      <input type="number" id="tps" value="10" min="1" max="1000" />
+
+      <p>Pixel Size</p>
+      <input type="number" id="psize" value="25" min="1" max="100" />
+
+      <p>World Size</p>
+      <input type="number" id="wsize" value="20" min="5" max="256" />
+    </div>
+    <div id="worldList">
+      <button onclick="closeWorldList()">Close</button>
+      <h2>Saved Worlds</h2>
+      <input type="text" id="worldNameInput" placeholder="World name" />
+      <button onclick="saveCurrentWorld()">Save</button>
+      <input type="file" id="fileInput" style="display: none;" accept=".json, .ew"/>
+      <button id="openFileBtn">Select File</button>
+      <div id="worldItems"></div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
