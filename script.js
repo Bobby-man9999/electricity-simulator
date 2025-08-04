@@ -219,20 +219,23 @@ function tick() {
         }
       } else if (cell === 18) {
         if (world.charges[y][x] === 1) {
-          newWorld[y][x] = 0;
-          const d = [
-            [0, 0],
-            [1, 0],
-            [0, 1],
-            [-1, 0],
-            [0, -1],
-            [1, 1],
-            [-1, 1],
-            [1, -1],
-            [-1, -1],
-          ];
-          for (let i of d) {
-            newWorld[y + i[0]][x + i[1]] = 0;
+          if (world.charges[y][x] === 1) {
+          newCharge[y][x] = 0.5;
+          if (x + 1 < world.width && world.charges[y][x + 1] === 0)
+            newCharge[y][x + 1] = 1;
+          if (x - 1 >= 0 && world.charges[y][x - 1] === 0)
+            newCharge[y][x - 1] = 1;
+          if (y + 1 < world.height && world.charges[y + 1][x] === 0)
+            newCharge[y + 1][x] = 1;
+          if (y - 1 >= 0 && world.charges[y - 1][x] === 0)
+            newCharge[y - 1][x] = 1;
+        } else if (world.charges[y][x] === 0.5) {
+          newCharge[y][x] = 0;
+          const power = 1
+          for (let i = y - power, i < y + power, i++) {
+            for (let j = x - power, j < x + power, j++) {
+              newWorld[i][j] = 0;
+            }
           }
         }
       }
