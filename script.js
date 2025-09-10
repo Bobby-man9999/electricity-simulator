@@ -253,7 +253,7 @@ function tick() {
         }
       }
     }
-  }
+  
   world.charges = newCharge;
   world.content = newWorld;
 }
